@@ -318,14 +318,12 @@ if __name__ == '__main__':
 
         from tqdm import tqdm
 
-        with tqdm(total=Bilibili.query_short_comments_count(md_id)) as pbar:
-            pbar.set_description("获取短评")
+        with tqdm(total=Bilibili.query_short_comments_count(md_id), desc=f"{Fore.RED}获取短评") as pbar:
             for comments in iter(Bilibili.CommentsIter(Bilibili.query_short_comments, md_id)):
                 shrt_comments.extend(comments)
                 pbar.update(len(comments))
 
-        with tqdm(total=Bilibili.query_long_comments_count(md_id)) as pbar:
-            pbar.set_description("获取长评")
+        with tqdm(total=Bilibili.query_long_comments_count(md_id), desc=f"{Fore.RED}获取长评") as pbar:
             for comments in iter(Bilibili.CommentsIter(Bilibili.query_long_comments, md_id)):
                 long_comments.extend(comments)
                 pbar.update(len(comments))
