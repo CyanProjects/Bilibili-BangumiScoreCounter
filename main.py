@@ -10,7 +10,6 @@ import json
 
 
 class Bilibili:
-
     class CommentsIter:
         def __init__(self, func, md_id: str, next: int = 0):
             self.next = next
@@ -96,7 +95,6 @@ class Bilibili:
         else:
             return None
 
-
     @classmethod
     def get_media_meta(cls, md_id: str) -> dict | None:
         """
@@ -108,10 +106,10 @@ class Bilibili:
         _resp = requests.get("https://api.bilibili.com/pgc/review/user", params={
             "media_id": md_id
         })
-        
+
         _resp.raise_for_status()
         data = json.loads(_resp.text)
-        
+
         if data['code'] == 0:
             return data['result']['media']
         else:
@@ -199,152 +197,179 @@ headers = {
                   "Safari/537.36 Edg/109.0.1518.55"
 }
 
-print(f"{Fore.MAGENTA} 请输入番剧主页 Url")
-print(f"{Fore.LIGHTCYAN_EX}", end='')
-URL: str = input(f"{Fore.LIGHTCYAN_EX}[URL] ")
+if __name__ == '__main__':
 
-print(f"{Fore.LIGHTMAGENTA_EX} 获取视频信息...")
+    import os
+    import pathlib
 
-md_id, ss_id, ep_id = (None,) * 3
-md_url, ss_url, ep_url = (None,) * 3
+    load = False
+    if os.path.exists(pathlib.Path("long_comments.json")) \
+            and os.path.exists(pathlib.Path("short_comments.json")):
+        print(f"{Fore.YELLOW} 发现评论数据, 是否直接加载?")
+        ans = input("[Y/n] ").lower()
+        match ans:
+            case "n":
+                load = False
+            case default:
+                load = True
 
-try:
-    md_url, md_id = Bilibili.grep_media_id(URL)
-    ss_url, ss_id = Bilibili.grep_season_id(URL)
-    ep_url, ep_id = Bilibili.grep_episode_id(URL)
-except TypeError:
-    try:
-        ss_url, ss_id = Bilibili.grep_season_id(URL)
-        ep_url, ep_id = Bilibili.grep_episode_id(URL)
-    except TypeError:
+    long_comments = []
+
+    shrt_comments = []
+
+    if not load:
+        print(f"{Fore.MAGENTA} 请输入番剧主页 Url")
+        print(f"{Fore.LIGHTCYAN_EX}", end='')
+        URL: str = input(f"{Fore.LIGHTCYAN_EX}[URL] ")
+
+        print(f"{Fore.LIGHTMAGENTA_EX} 获取视频信息...")
+
+        md_id, ss_id, ep_id = (None,) * 3
+        md_url, ss_url, ep_url = (None,) * 3
+
         try:
+            md_url, md_id = Bilibili.grep_media_id(URL)
+            ss_url, ss_id = Bilibili.grep_season_id(URL)
             ep_url, ep_id = Bilibili.grep_episode_id(URL)
         except TypeError:
-            if (md_id or ss_id or ep_id) is None:
-                print(f"{Fore.RED} URL 解析失败, 请检查链接是否有误!")
-                sys.exit(-1)
+            try:
+                ss_url, ss_id = Bilibili.grep_season_id(URL)
+                ep_url, ep_id = Bilibili.grep_episode_id(URL)
+            except TypeError:
+                try:
+                    ep_url, ep_id = Bilibili.grep_episode_id(URL)
+                except TypeError:
+                    if (md_id or ss_id or ep_id) is None:
+                        print(f"{Fore.RED} URL 解析失败, 请检查链接是否有误!")
+                        sys.exit(-1)
 
-md_id, ss_id, ep_id = map((lambda x: 0 if not x else x), (md_id, ss_id, ep_id))
+        md_id, ss_id, ep_id = map((lambda x: 0 if not x else x), (md_id, ss_id, ep_id))
 
-# request other id from api
-if not md_id:
-    if ep_id or ss_id:
-        _resp = requests.get("https://api.bilibili.com/pgc/view/web/season", headers=headers, params={
-            "season_id": ss_id,
-            "ep_id": ep_id
-        })
+        # request other id from api
+        if not md_id:
+            if ep_id or ss_id:
+                _resp = requests.get("https://api.bilibili.com/pgc/view/web/season", headers=headers, params={
+                    "season_id": ss_id,
+                    "ep_id": ep_id
+                })
+                _resp.raise_for_status()
+                data = json.loads(_resp.text)
+                if data['code'] == 0:
+                    md_id = data['result']['media_id']
+                    ss_id = data['result']['season_id']
+                else:
+                    print(f"{Fore.RED} Media 解析失败, 请检查链接是否有误!")
+                    sys.exit(-1)
+
+            md_url = f"https://www.bilibili.com/bangumi/media/md{md_id}"
+
+        if not ss_id:
+            if md_id:
+                _resp = requests.get("https://api.bilibili.com/pgc/review/user", headers=headers, params={
+                    "media_id": md_id,
+                })
+                _resp.raise_for_status()
+                data = json.loads(_resp.text)
+                if data['code'] == 0:
+                    md_id = data['result']['media']['media_id']
+                else:
+                    print(f"{Fore.RED} Season 解析失败!")
+            elif ep_id:
+                _resp = requests.get("https://api.bilibili.com/pgc/view/web/season", headers=headers, params={
+                    "ep_id": ep_id,
+                })
+                _resp.raise_for_status()
+                data = json.loads(_resp.text)
+                if data['code'] == 0:
+                    md_id = data['result']['season_id']
+                else:
+                    print(f"{Fore.RED} Season 解析失败!")
+
+            ss_url = f"https://www.bilibili.com/bangumi/play/ss{ss_id}"
+
+        # Match id from page
+        """
+        _resp = requests.get(URL, headers=headers)
         _resp.raise_for_status()
-        data = json.loads(_resp.text)
-        if data['code'] == 0:
-            md_id = data['result']['media_id']
-            ss_id = data['result']['season_id']
-        else:
-            print(f"{Fore.RED} Media 解析失败, 请检查链接是否有误!")
-            sys.exit(-1)
+        _, md_id = Bilibili.grep_media_id(_resp.text)
+        _, ss_id = Bilibili.grep_season_id(_resp.text)
+        _, ep_id = Bilibili.grep_episode_id(_resp.text)
+        """
 
-    md_url = f"https://www.bilibili.com/bangumi/media/md{md_id}"
+        bangumi_meta = Bilibili.get_media_meta(md_id)
+        season_stat = Bilibili.get_season_status(ss_id)
 
-if not ss_id:
-    if md_id:
-        _resp = requests.get("https://api.bilibili.com/pgc/review/user", headers=headers, params={
-            "media_id": md_id,
-        })
-        _resp.raise_for_status()
-        data = json.loads(_resp.text)
-        if data['code'] == 0:
-            md_id = data['result']['media']['media_id']
-        else:
-            print(f"{Fore.RED} Season 解析失败!")
-    elif ep_id:
-        _resp = requests.get("https://api.bilibili.com/pgc/view/web/season", headers=headers, params={
-            "ep_id": ep_id,
-        })
-        _resp.raise_for_status()
-        data = json.loads(_resp.text)
-        if data['code'] == 0:
-            md_id = data['result']['season_id']
-        else:
-            print(f"{Fore.RED} Season 解析失败!")
+        print(f"{Fore.CYAN} 番剧名称: {bangumi_meta['title']}")
+        print(f"{Fore.CYAN} 番剧类型: {bangumi_meta['type_name']}")
+        print(f"{Fore.CYAN} 番剧集数: {bangumi_meta['new_ep']['index_show']}")
+        print(f"{Fore.CYAN} 显示分数: {bangumi_meta['rating']['score']} ({bangumi_meta['rating']['count']})")
+        print(
+            f"{Fore.CYAN} 播放 {season_stat['views']} 投币 {season_stat['coins']} \t 弹幕 {season_stat['danmakus']} \n"
+            f" 追番 {season_stat['follow']} \t 系列追番 {season_stat['series_follow']} \n")
 
-    ss_url = f"https://www.bilibili.com/bangumi/play/ss{ss_id}"
+        print(f"{Fore.CYAN} Episode Url: {ep_url}")
+        print(f"{Fore.CYAN} Episode Id:  {ep_id}")
+        print(f"{Fore.CYAN} Season Url:  {ss_url}")
+        print(f"{Fore.CYAN} Season Id:   {ss_id}")
+        print(f"{Fore.CYAN} Media Url:   {md_url}")
+        print(f"{Fore.CYAN} Media Id:    {md_id}")
 
-# Match id from page
-"""
-_resp = requests.get(URL, headers=headers)
-_resp.raise_for_status()
-_, md_id = Bilibili.grep_media_id(_resp.text)
-_, ss_id = Bilibili.grep_season_id(_resp.text)
-_, ep_id = Bilibili.grep_episode_id(_resp.text)
-"""
+        shrt_cmt_cnt = Bilibili.query_short_comments_count(md_id)
 
-bangumi_meta = Bilibili.get_media_meta(md_id)
-season_stat = Bilibili.get_season_status(ss_id)
+        from tqdm import tqdm
 
-print(f"{Fore.CYAN} 番剧名称: {bangumi_meta['title']}")
-print(f"{Fore.CYAN} 番剧类型: {bangumi_meta['type_name']}")
-print(f"{Fore.CYAN} 番剧集数: {bangumi_meta['new_ep']['index_show']}")
-print(f"{Fore.CYAN} 显示分数: {bangumi_meta['rating']['score']} ({bangumi_meta['rating']['count']})")
-print(f"{Fore.CYAN} 投币 {season_stat['coins']} \t 弹幕 {season_stat['danmakus']} \n"
-      f" 追番 {season_stat['follow']} \t 系列追番 {season_stat['series_follow']} \n"
-      f" 播放 {season_stat['views']}")
+        with tqdm(total=Bilibili.query_short_comments_count(md_id)) as pbar:
+            pbar.set_description("获取短评")
+            for comments in iter(Bilibili.CommentsIter(Bilibili.query_short_comments, md_id)):
+                shrt_comments.extend(comments)
+                pbar.update(len(comments))
 
-print(f"{Fore.CYAN} Episode Url: {ep_url}")
-print(f"{Fore.CYAN} Episode Id:  {ep_id}")
-print(f"{Fore.CYAN} Season Url:  {ss_url}")
-print(f"{Fore.CYAN} Season Id:   {ss_id}")
-print(f"{Fore.CYAN} Media Url:   {md_url}")
-print(f"{Fore.CYAN} Media Id:    {md_id}")
+        with tqdm(total=Bilibili.query_long_comments_count(md_id)) as pbar:
+            pbar.set_description("获取长评")
+            for comments in iter(Bilibili.CommentsIter(Bilibili.query_long_comments, md_id)):
+                long_comments.extend(comments)
+                pbar.update(len(comments))
 
-shrt_cmt_cnt = Bilibili.query_short_comments_count(md_id)
+        print(f"{Fore.MAGENTA} 获取完毕! \n保存中...")
 
-from tqdm import tqdm
+        with open('short_comments.json', 'w', encoding='utf-8') as fp:
+            json.dump(shrt_comments, fp)
 
-shrt_comments = []
+        with open('long_comments.json', 'w', encoding='utf-8') as fp:
+            json.dump(long_comments, fp)
 
-with tqdm(total=Bilibili.query_short_comments_count(md_id)) as pbar:
-    pbar.set_description("获取短评")
-    for comments in iter(Bilibili.CommentsIter(Bilibili.query_short_comments, md_id)):
-        shrt_comments.extend(comments)
-        pbar.update(len(comments))
+    else:
+        print(f"{Fore.MAGENTA} 加载中...")
+        with open("short_comments.json", 'r', encoding='utf-8') as fp:
+            shrt_comments = json.load(fp)
 
-long_comments = []
+        with open("long_comments.json", 'r', encoding='utf-8') as fp:
+            long_comments = json.load(fp)
 
-with tqdm(total=Bilibili.query_long_comments_count(md_id)) as pbar:
-    pbar.set_description("获取长评")
-    for comments in iter(Bilibili.CommentsIter(Bilibili.query_long_comments, md_id)):
-        long_comments.extend(comments)
-        pbar.update(len(comments))
+        print(f"{Fore.MAGENTA} 加载完毕, 共 {len(shrt_comments) + len(long_comments)} 条!")
 
+    from tqdm import tqdm
 
-print(f"{Fore.MAGENTA} 获取完毕! 保存中...")
+    shrt_total = 0
 
-with open('short_comments.json', 'w', encoding='utf-8') as fp:
-    json.dump(shrt_comments, fp)
+    for comments in tqdm(shrt_comments, desc=f"{Fore.LIGHTRED_EX}短评分数计算"):
+        shrt_total += comments['score']
 
-with open('long_comments.json', 'w', encoding='utf-8') as fp:
-    json.dump(long_comments, fp)
+    shrt_score = shrt_total / len(shrt_comments)
 
-shrt_total = 0
+    print(f"{Fore.CYAN}短评平均分: \t{Fore.LIGHTCYAN_EX}{shrt_score}")
 
-for comments in tqdm(shrt_comments, desc=f"{Fore.LIGHTRED_EX}短评分数计算"):
-    shrt_total += comments['score']
+    long_total = 0
 
-shrt_score = shrt_total / len(shrt_comments)
+    for comments in tqdm(long_comments, desc=f"{Fore.LIGHTRED_EX}长评分数计算"):
+        long_total += comments['score']
 
-print(f"{Fore.CYAN}短评平均分: {shrt_score}")
+    long_score = long_total / len(long_comments)
 
-long_total = 0
+    print(f"{Fore.CYAN}长评平均分: \t{Fore.LIGHTCYAN_EX}{long_score}")
 
-for comments in tqdm(long_comments, desc=f"{Fore.LIGHTRED_EX}长评分数计算"):
-    long_total += comments['score']
+    score = (shrt_score + long_score) / 2
 
-long_score = long_total / len(long_comments)
+    print(f"{Fore.CYAN}总平均分: \t{Fore.LIGHTCYAN_EX}{score}")
 
-print(f"{Fore.CYAN}长评平均分: {long_score}")
-
-score = (shrt_score + long_score) / 2
-
-print(f"{Fore.CYAN}总平均分: {score}")
-
-
-print(f"{Fore.GREEN}All Done!")
+    print(f"{Fore.GREEN}All Done!")
