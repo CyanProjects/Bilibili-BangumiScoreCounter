@@ -205,7 +205,7 @@ if __name__ == '__main__':
     load = False
     if os.path.exists(pathlib.Path("long_comments.json")) \
             and os.path.exists(pathlib.Path("short_comments.json")):
-        print(f"{Fore.YELLOW} 发现评论数据, 是否直接加载?")
+        print(f"{Fore.YELLOW} 发现评分数据存档, 是否直接加载?")
         ans = input("[Y/n] ").lower()
         match ans:
             case "n":
