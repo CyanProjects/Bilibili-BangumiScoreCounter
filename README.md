@@ -9,7 +9,7 @@
     python ./main.py
 
 #### 方法二
-下载 main.py 直接使用
+下载 [main.py](main.py) 直接使用
 
 ### 使用
 
