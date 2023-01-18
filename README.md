@@ -2,7 +2,7 @@
 获取 真实的 B站番剧评分
 
 ## 使用方法  
-> git clone https://github.com/Chinese-Cyq20100313/Bilibili-BangumiScoreCounter.git  
+> git clone https://github.com/Chinese-Cyq20100313/Bilibili-BangumiScoreCounter.git sc_counter  
 cd sc_counter  
 python ./main.py  
 
