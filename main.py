@@ -10,6 +10,9 @@ import json
 
 
 class Bilibili:
+    """
+    获取评分的迭代器(每次默认20个，不超过20个)
+    """
     class CommentsIter:
         def __init__(self, func, md_id: str, next: int = 0):
             self.next = next
