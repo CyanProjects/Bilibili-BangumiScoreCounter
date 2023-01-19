@@ -1,7 +1,7 @@
 # Bilibili-BangumiScoreCounter
 获取 真实的 B站番剧评分
-![banner](images/banner.png)
-![banner2](images/banner2.png)
+![image](https://user-images.githubusercontent.com/68551684/213353367-525a99d1-5aa6-4eb2-a3d7-9eeb9fef83a0.png)
+![image](https://user-images.githubusercontent.com/68551684/213353388-372cfa75-fa28-402d-be34-81d736502873.png)
 ## 使用方法  
 ### 下载
 #### 方法一
@@ -37,8 +37,8 @@ Example
 
 #### 演示
 
-![Example](images/example.png)
-![EXample2](images/example2.png)
+![image](https://user-images.githubusercontent.com/68551684/213353423-dc9fe80f-5f99-4b63-b24e-666a6d8c79cb.png)
+![image](https://user-images.githubusercontent.com/68551684/213353473-42d2bacc-ab26-4393-9a49-9476c67e602a.png)
 
 #### 作者B站账号: Cyan_Changes UID475405591
 
