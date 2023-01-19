@@ -1,6 +1,7 @@
 # Bilibili-BangumiScoreCounter
 获取 真实的 B站番剧评分
-
+![banner](images/banner.png)
+![banner2](images/banner2.png)
 ## 使用方法  
 ### 下载
 #### 方法一
@@ -33,6 +34,11 @@
     ./main.py -detail
 Example
     ./main.py -detail -url https://www.bilibili.com/bangumi/play/ep704479?from_spmid=666.25.episode.0&from_outer_spmid=666.19.0.0
+
+#### 演示
+
+![Example](images/example.png)
+![EXample2](images/example2.png)
 
 #### 作者B站账号: Cyan_Changes UID475405591
 
