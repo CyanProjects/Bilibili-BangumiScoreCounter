@@ -264,7 +264,7 @@ if __name__ == '__main__':
     sys.excepthook = exc_hook
 
     load = False
-    use_arg = (len(sys.argv) != 0)
+    use_arg = (len(sys.argv) <= 1)
     URL: str = ''
     detailed_epinfo = False
 
