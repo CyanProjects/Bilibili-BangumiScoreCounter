@@ -24,15 +24,15 @@
 ![image](https://user-images.githubusercontent.com/68551684/213110498-c72a9aa0-0376-4eb3-8e3e-b55b589b7fba.png)
 
 #### 使用参数
-参数加载番剧Url
+参数加载番剧Url  
     ./main.py -url [番剧URL]
-参数使用保存的数据
+参数使用保存的数据  
     ./main.py -load
-获取帮助 (特性 只有help在最后才可以生效)
+获取帮助 (特性 只有help在最后才可以生效)  
     ./main.py -help
-番剧全部剧集信息
+番剧全部剧集信息.  
     ./main.py -detail
-Example
+Example  
     ./main.py -detail -url https://www.bilibili.com/bangumi/play/ep704479?from_spmid=666.25.episode.0&from_outer_spmid=666.19.0.0
 
 #### 演示
